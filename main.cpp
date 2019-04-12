@@ -174,7 +174,6 @@ void testHumanModelAbs()
     {
 		deltaF = readF();
 		
-		//rad = (deltaF*CV_PI_f) / 180;
 		printf("%f\t%f\t%f\n", deltaF[0], deltaF[1], deltaF[2]);
 		cfg.worldBasisY = rot.Apply(cfg.worldBasisY);
         //sensor.junctionB += Point3f(0, 0, 0.02*CV_PI_f);
