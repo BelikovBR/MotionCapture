@@ -1,15 +1,14 @@
 //
-
+#include "windows.h"
 #include <iostream>
 #include "HumanModel.h"
-#include <QSerialPort.hpp>
 
+using namespace std;
 
-using std::cout;
-using std::cin;
-using std::endl;
-using std::string;
 float deltaCV = 0;
+
+HANDLE hSerial;
+float* readF();
 
  /*
 void testRotationMat(Point3f angles, Point3f ptSrc)
@@ -125,66 +124,138 @@ void testFittingSteps()
 }
 */
 
+
 // Тест визуализации для модели, заданной углами ориентации элементов в
 // абсолютной системе координат.
 void testHumanModelAbs()
 {
-    HumanDimensions dims;
-    HumanModelAbs model;
-    float scale;
-    Mat image;
-    DrawingConfig cfg;
-    CoordTransform rot;
-    rot.Angles = Point3f(0.3f, 0.0f, 0.0f);
-    rot.Translation = Point3f(0, 0, 0);
+	HumanDimensions dims;
+	HumanModelAbs model;
+	float scale;
+	Mat image;
+	DrawingConfig cfg;
+	CoordTransform rot;
+	rot.Angles = Point3f(0.3f, 0.0f, 0.0f);
+	rot.Translation = Point3f(0, 0, 0);
 
-    // Задаем размеры частей тела и точки крепления маркеров (метры)
-    dims.sizeAF = 0.40f;
-    dims.sizeAB = 0.27f;
-    dims.sizeBC = 0.27f;
-    dims.markerAAF = 0.10f * dims.sizeAF; // от маркера AAF до сустава A
-    dims.markerABB = 0.36f * dims.sizeAB; // от маркера ABB до сустава B
-    dims.markerBCC = 0.36f * dims.sizeBC; // от маркера BCC до вершины C
-    model.Build(dims);
+	// Задаем размеры частей тела и точки крепления маркеров (метры)
+	dims.sizeAF = 0.40f;
+	dims.sizeAB = 0.27f;
+	dims.sizeBC = 0.27f;
+	dims.markerAAF = 0.10f * dims.sizeAF; // от маркера AAF до сустава A
+	dims.markerABB = 0.36f * dims.sizeAB; // от маркера ABB до сустава B
+	dims.markerBCC = 0.36f * dims.sizeBC; // от маркера BCC до вершины C
+	model.Build(dims);
 
-    // Инициализируем контекст визуализации
-    image.create(480, 640, CV_8UC3);
-    cfg.worldOrigin  = Point3f(0, 0, 1);
-    cfg.imageOrigin = Point2f(0.5f*image.cols, 0.5f*image.rows);
-    cfg.imageScale = 100.0f;
+	// Инициализируем контекст визуализации
+	image.create(480, 640, CV_8UC3);
+	cfg.worldOrigin = Point3f(0, 0, 1);
+	cfg.imageOrigin = Point2f(0.5f*image.cols, 0.5f*image.rows);
+	cfg.imageScale = 100.0f;
 
-    // Инициализируем состояние модели
-    Sensor sensor;
-    sensor.junctionGround = Point3f(0, 0, 0);
-    sensor.junctionA = Point3f(0, 0, 0.75*CV_PI_f);
-    sensor.junctionB = Point3f(0, 0, 0.25*CV_PI_f);
-    sensor.junctionF = Point3f(0, 0, 0.25*CV_PI_f);
-    sensor.junctionE = Point3f(0, 0, 0.75*CV_PI_f);
-    model.UpdateState(sensor);
-    model.Draw(image, cfg);
-    imshow("display", image);
-    waitKey(500);
+	// Инициализируем состояние модели
+	Sensor sensor;
+	sensor.junctionGround = Point3f(0, 0, 0);
+	sensor.junctionA = Point3f(0, 0, 0.75*CV_PI_f);
+	sensor.junctionB = Point3f(0, 0, 0.25*CV_PI_f);
+	sensor.junctionF = Point3f(0, 0, 0.25*CV_PI_f);
+	sensor.junctionE = Point3f(0, 0, 0.75*CV_PI_f);
+	model.UpdateState(sensor);
+	model.Draw(image, cfg);
+	imshow("display", image);
+	waitKey(500);
 
-    // Проводим цикл пошагового совмещения
-    int istep = 0;
-    signed char key = -1;
+	// Проводим цикл пошагового совмещения
+	int istep = 0;
+	signed char key = -1;
+	float * deltaF;
+	float rad = 0;
     do
     {
-        cfg.worldBasisY = rot.Apply(cfg.worldBasisY);
+		deltaF = readF();
+		
+		//rad = (deltaF*CV_PI_f) / 180;
+		printf("%f\t%f\t%f\n", deltaF[0], deltaF[1], deltaF[2]);
+		cfg.worldBasisY = rot.Apply(cfg.worldBasisY);
         //sensor.junctionB += Point3f(0, 0, 0.02*CV_PI_f);
-		sensor.junctionB.y = 0.25*CV_PI_f + deltaCV;
+		sensor.junctionB.x = deltaF[0];
+		sensor.junctionB.y = deltaF[1];
+		sensor.junctionB.z = deltaF[2];
+
         model.UpdateState(sensor);
         model.Draw(image, cfg);
         imshow("display", image);
         key = waitKey(500);
     }
     while (key == -1 && istep < 100);
-	//destroyAllWindows();
+	destroyAllWindows();
 }
 
+float* readF() {
+	DWORD iSize;
+	char sReceivedChar = 0;
+	char mystring[256];
+	float deltaX = 0, deltaY = 0 , deltaZ = 0;
+	float* ypr = new float[2];
+	int val = 0;
+	char tmp;
+
+	for (int i = 0; i < 256; i++) {
+
+		ReadFile(hSerial, &sReceivedChar, sizeof(sReceivedChar), &iSize, NULL);  // получаем 1 байт
+		
+		if (sReceivedChar == 'n')
+			val = 1;
+		if (sReceivedChar == '\n')
+			val = 0;
+
+		if (val == 1)
+			mystring[i] = sReceivedChar;
+		else {
+			i = 257;
+		}
+		
+
+	}
+
+	sscanf(mystring,"%c%f%f%f", &tmp, &deltaX, &deltaY, &deltaZ);
+	ypr[0] = deltaX;
+	ypr[1] = deltaY;
+	ypr[2] = deltaZ;
+
+	return ypr;
+}
 
 int main()
-{
+{	
+	
+	LPCTSTR sPortName = L"COM3";
+	hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+	if (hSerial == INVALID_HANDLE_VALUE)
+	{
+		if (GetLastError() == ERROR_FILE_NOT_FOUND)
+		{
+			cout << "serial port does not exist.\n";
+		}
+		cout << "some other error occurred.\n";
+	}
+
+	DCB dcbSerialParams = { 0 };
+	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+	if (!GetCommState(hSerial, &dcbSerialParams))
+	{
+		cout << "getting state error\n";
+	}
+	dcbSerialParams.BaudRate = CBR_115200;
+	dcbSerialParams.ByteSize = 8;
+	dcbSerialParams.StopBits = ONESTOPBIT;
+	dcbSerialParams.Parity = NOPARITY;
+	if (!SetCommState(hSerial, &dcbSerialParams))
+	{
+		cout << "error setting serial port state\n";
+	}
+	
     //testRotationMat();
     //testPullTransform();
     //testFittingSteps();
