@@ -127,15 +127,14 @@ void testFittingSteps()
 
 // Тест визуализации для модели, заданной углами ориентации элементов в
 // абсолютной системе координат.
-void testHumanModelAbs()
-{
+void testHumanModelAbs() {
 	HumanDimensions dims;
 	HumanModelAbs model;
-	float scale;
+//	float scale;
 	Mat image;
 	DrawingConfig cfg;
 	CoordTransform rot;
-	rot.Angles = Point3f(0.3f, 0.0f, 0.0f);
+	rot.Angles = Point3f(0.5*CV_PI_f, 0.0f, 0.0f);
 	rot.Translation = Point3f(0, 0, 0);
 
 	// Задаем размеры частей тела и точки крепления маркеров (метры)
@@ -150,6 +149,7 @@ void testHumanModelAbs()
 	// Инициализируем контекст визуализации
 	image.create(480, 640, CV_8UC3);
 	cfg.worldOrigin = Point3f(0, 0, 1);
+	//cfg.worldBasisY = rot.Apply(cfg.worldBasisY);
 	cfg.imageOrigin = Point2f(0.5f*image.cols, 0.5f*image.rows);
 	cfg.imageScale = 100.0f;
 
@@ -170,71 +170,80 @@ void testHumanModelAbs()
 	signed char key = -1;
 	float * deltaF;
 	float rad = 0;
-    do
-    {
+    do 
+	{
 		deltaF = readF();
 		
-		printf("%f\t%f\t%f\n", deltaF[0], deltaF[1], deltaF[2]);
-		cfg.worldBasisY = rot.Apply(cfg.worldBasisY);
+		
+		printf("%f\t%f\t%f\n", deltaF[0]*180/ CV_PI_f, deltaF[1] * 180 / CV_PI_f, deltaF[2] * 180 / CV_PI_f);
+		//cfg.worldBasisY = rot.Apply(cfg.worldBasisY);
         //sensor.junctionB += Point3f(0, 0, 0.02*CV_PI_f);
-		sensor.junctionB.x = deltaF[0];
-		sensor.junctionB.y = deltaF[1];
-		sensor.junctionB.z = deltaF[2];
+		sensor.junctionB.x = deltaF[1];
+		sensor.junctionB.y = deltaF[2];
+		sensor.junctionB.z = deltaF[0];
+		/*int tnp = (int)deltaF[0];
+		if (tnp == 0) {
+			sensor.junctionB.x = deltaF[1];
+			sensor.junctionB.y = deltaF[2];
+			sensor.junctionB.z = deltaF[3];
+		}*/
+
 
         model.UpdateState(sensor);
         model.Draw(image, cfg);
         imshow("display", image);
-        key = waitKey(500);
+        key = waitKey(5);
     }
     while (key == -1 && istep < 100);
 	destroyAllWindows();
 }
 
+// Функция чтения данных из com-порта 
+// Формат: n[i] ..... \n, где i - номер датчика в костюме
+//ypr[0] - номер датчика
+//ypr[1],ypr[2],ypr[3] - углы x,y,z
 float* readF() {
 	DWORD iSize;
 	char sReceivedChar = 0;
 	char mystring[256];
-	float deltaX = 0, deltaY = 0 , deltaZ = 0;
+	//float deltaX = 0, deltaY = 0 , deltaZ = 0;
 	float* ypr = new float[2];
 	int val = 0;
+	//char j;
 	char tmp;
 
 	for (int i = 0; i < 256; i++) {
 
 		ReadFile(hSerial, &sReceivedChar, sizeof(sReceivedChar), &iSize, NULL);  // получаем 1 байт
 		
-		if (sReceivedChar == 'n')
+		if (sReceivedChar == 'n') {
 			val = 1;
+		//	ReadFile(hSerial, &sReceivedChar, sizeof(sReceivedChar), &iSize, NULL);
+			//j = sReceivedChar;
+		}
 		if (sReceivedChar == '\n')
 			val = 0;
-
+		 
 		if (val == 1)
 			mystring[i] = sReceivedChar;
 		else {
 			i = 257;
 		}
-		
-
+	
 	}
 
-	sscanf(mystring,"%c%f%f%f", &tmp, &deltaX, &deltaY, &deltaZ);
-	ypr[0] = deltaX;
-	ypr[1] = deltaY;
-	ypr[2] = deltaZ;
+	sscanf(mystring,"%c%f%f%f", &tmp, &ypr[0], &ypr[1], &ypr[2]);
 
 	return ypr;
 }
 
-int main()
-{	
+int main() {	
 	
 	LPCTSTR sPortName = L"COM3";
 	hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
-	if (hSerial == INVALID_HANDLE_VALUE)
-	{
-		if (GetLastError() == ERROR_FILE_NOT_FOUND)
-		{
+	if (hSerial == INVALID_HANDLE_VALUE) {
+		if (GetLastError() == ERROR_FILE_NOT_FOUND) {
 			cout << "serial port does not exist.\n";
 		}
 		cout << "some other error occurred.\n";
@@ -242,16 +251,14 @@ int main()
 
 	DCB dcbSerialParams = { 0 };
 	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-	if (!GetCommState(hSerial, &dcbSerialParams))
-	{
+	if (!GetCommState(hSerial, &dcbSerialParams)) {
 		cout << "getting state error\n";
 	}
 	dcbSerialParams.BaudRate = CBR_115200;
 	dcbSerialParams.ByteSize = 8;
 	dcbSerialParams.StopBits = ONESTOPBIT;
 	dcbSerialParams.Parity = NOPARITY;
-	if (!SetCommState(hSerial, &dcbSerialParams))
-	{
+	if (!SetCommState(hSerial, &dcbSerialParams)) {
 		cout << "error setting serial port state\n";
 	}
 	
