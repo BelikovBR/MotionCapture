@@ -134,6 +134,7 @@ void testHumanModelAbs() {
 	Mat image;
 	DrawingConfig cfg;
 	CoordTransform rot;
+	Quaternion quat;
 	rot.Angles = Point3f(0.5*CV_PI_f, 0.0f, 0.0f);
 	rot.Translation = Point3f(0, 0, 0);
 
@@ -161,26 +162,30 @@ void testHumanModelAbs() {
 	sensor.junctionF = Point3f(0, 0, 0.25*CV_PI_f);
 	sensor.junctionE = Point3f(0, 0, 0.75*CV_PI_f);
 	model.UpdateState(sensor);
-	model.Draw(image, cfg);
+	//model.Draw(image, cfg);
+	model.DrawTestQuaternion(image, cfg, quat);
 	imshow("display", image);
-	waitKey(500);
+	waitKey(5);
 
 	// Проводим цикл пошагового совмещения
 	int istep = 0;
 	signed char key = -1;
 	float * deltaF;
 	float rad = 0;
-    do 
+    do
 	{
 		deltaF = readF();
-		
-		
-		printf("%f\t%f\t%f\n", deltaF[0]*180/ CV_PI_f, deltaF[1] * 180 / CV_PI_f, deltaF[2] * 180 / CV_PI_f);
+
+		printf("%f\t%f\t%f\t%f\n", deltaF[0], deltaF[1], deltaF[2], deltaF[3]);
 		//cfg.worldBasisY = rot.Apply(cfg.worldBasisY);
         //sensor.junctionB += Point3f(0, 0, 0.02*CV_PI_f);
 		sensor.junctionB.x = deltaF[1];
 		sensor.junctionB.y = deltaF[2];
 		sensor.junctionB.z = deltaF[0];
+		quat.w = deltaF[0];
+		quat.x = deltaF[1];
+		quat.y = deltaF[2];
+		quat.z = deltaF[3];
 		/*int tnp = (int)deltaF[0];
 		if (tnp == 0) {
 			sensor.junctionB.x = deltaF[1];
@@ -190,11 +195,20 @@ void testHumanModelAbs() {
 
 
         model.UpdateState(sensor);
-        model.Draw(image, cfg);
+        //model.Draw(image, cfg);
+		model.DrawTestQuaternion(image, cfg, quat);
         imshow("display", image);
         key = waitKey(5);
     }
     while (key == -1 && istep < 100);
+	//quat.w = 0;
+	//quat.x = 0;
+	//quat.y = sqrt(0.5);
+	//quat.z = sqrt(0.5);
+	//model.DrawTestQuaternion(image, cfg, quat);
+	//imshow("display", image);
+	//key = waitKey();
+
 	destroyAllWindows();
 }
 
@@ -207,9 +221,9 @@ float* readF() {
 	char sReceivedChar = 0;
 	char mystring[256];
 	//float deltaX = 0, deltaY = 0 , deltaZ = 0;
-	float* ypr = new float[2];
+	
+	float* ypr = new float[4];
 	int val = 0;
-	//char j;
 	char tmp;
 
 	for (int i = 0; i < 256; i++) {
@@ -232,7 +246,7 @@ float* readF() {
 	
 	}
 
-	sscanf(mystring,"%c%f%f%f", &tmp, &ypr[0], &ypr[1], &ypr[2]);
+	sscanf(mystring,"%c%f%f%f%f", &tmp, &ypr[0], &ypr[1], &ypr[2], &ypr[3]);
 
 	return ypr;
 }

@@ -26,6 +26,14 @@ struct HumanDimensions
     float markerBCC;  // расстояние от маркера C на предплечье до запястья
 };
 
+struct Quaternion
+{
+	float w;
+	float x;
+	float y;
+	float z;
+};
+
 
 // Junction: Структура представляет сустав (реализация ниже)
 struct Junction;
@@ -198,6 +206,8 @@ public:
         int maxStepsCount);
     void Draw(Mat& image, const DrawingConfig& cfg, 
         const MarkerPoints& markerPts);
+
+	void DrawTestQuaternion(Mat& image, const DrawingConfig& cfg, Quaternion& quat);
 };
 
 

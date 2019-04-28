@@ -3,6 +3,75 @@
 #include "HumanModel.h"
 
 // ***********************************************************************
+// *     Операции с Quaternion-ми
+//
+
+Quaternion QuaternionMultiply(Quaternion * quat1, Quaternion * quat2) {
+	Point3f vector1, vector2, cross;
+	Quaternion result;
+	float angle;
+
+	vector1.x = quat1->x;
+	vector1.y = quat1->y;
+	vector1.z = quat1->z;
+	vector2.x = quat2->x;
+	vector2.y = quat2->y;
+	vector2.z = quat2->z;
+	angle = ((quat1->w * quat2->w) - (vector1.dot(vector2)));
+
+	cross = vector1.cross(vector2);
+	vector1.x *= quat2->w;
+	vector1.y *= quat2->w;
+	vector1.z *= quat2->w;
+	vector2.x *= quat1->w;
+	vector2.y *= quat1->w;
+	vector2.z *= quat1->w;
+
+	result.x = (vector1.x + vector2.x + cross.x);
+	result.y = (vector1.y + vector2.y + cross.y);
+	result.z = (vector1.z + vector2.z + cross.z);
+	result.w = angle;
+
+	return result;
+}
+
+void QuaternionInvert(Quaternion * quat) {
+	float length;
+
+	length = (1.0f / ((quat->x * quat->x) +
+		(quat->y * quat->y) +
+		(quat->z * quat->z) +
+		(quat->w * quat->w)));
+	quat->x *= -length;
+	quat->y *= -length;
+	quat->z *= -length;
+	quat->w *= length;
+}
+
+Point3f QuaternionMultiplyVector(Quaternion * quat, Point3f * vector) {
+	Quaternion vectorQuat, inverseQuat, resultQuat;
+	Point3f resultVector;
+
+	vectorQuat.x = vector->x;
+	vectorQuat.y = vector->y;
+	vectorQuat.z = vector->z;
+	vectorQuat.w = 0.0f;
+
+	inverseQuat = *quat;
+	QuaternionInvert(&inverseQuat);
+	resultQuat = QuaternionMultiply(&vectorQuat, &inverseQuat);
+	resultQuat = QuaternionMultiply(quat, &resultQuat);
+
+	resultVector.x = resultQuat.x;
+	resultVector.y = resultQuat.y;
+	resultVector.z = resultQuat.z;
+
+	return resultVector;
+}
+
+
+
+// ***********************************************************************
 // CoordTransform: Структура представляет ортогональное преобразование
 // координат
 // ***********************************************************************
@@ -628,6 +697,23 @@ void HumanModelAbs::Draw(Mat& image, const DrawingConfig& cfg)
     // Визуализация частей тела
     for (int i = 0; i < nBodies; i++)
         DrawBody(image, cfg, bodies + i);
+}
+
+void HumanModel::DrawTestQuaternion(
+	Mat& image, const DrawingConfig& cfg, Quaternion& quat)
+{
+	Point3f localHead = Point3f(0, 0, 0);
+	Point3f localTail = Point3f(1.0f, 0, 0);
+
+	Point3f globalHead = QuaternionMultiplyVector(&quat, &localHead);
+	Point3f globalTail = QuaternionMultiplyVector(&quat, &localTail);
+
+	Point2f imageHead = cfg.Project(globalHead);
+	Point2f imageTail = cfg.Project(globalTail);
+
+	// Закрашиваем изображение однотонной фоновой заливкой
+	image = cfg.backgndColor;
+	line(image, imageHead, imageTail, cfg.bodyColor, cfg.bodyWidth);
 }
 
 void HumanModelAbs::UpdateState(const Sensor& sensor)
