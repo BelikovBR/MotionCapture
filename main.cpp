@@ -316,6 +316,47 @@ void testHumanModelAbsQuat()
 }
 
 
+// Сценарий вращения модели стола в трехмерном пространстве
+void testTableModel()
+{
+    TableModel model;
+	Mat image;
+	DrawingConfig cfg;
+
+    // Задаем размеры стола
+    model.Init(5.0f, 3.0f, 2.0f);
+
+    // Инициализируем контекст визуализации
+	image.create(480, 640, CV_8UC3);
+	cfg.worldOrigin = Point3f(0.0f, 0.0f, 300.0f);
+	cfg.imageOrigin = Point2f(0.5f*image.cols, 0.5f*image.rows);
+	cfg.imageScale = 50.0f;
+
+    // Визуализируем изменение состояния модели
+	Quaternion sensor;
+	Point3f axisX(1.0f, 0.0f, 0.0f);
+	Point3f axisY(0.0f, 1.0f, 0.0f);
+	Point3f axisZ(0.0f, 0.0f, 1.0f);
+    signed char key = -1;
+	float angleZ = 0;
+	float * deltaF;
+	do
+	{
+		deltaF = readF();
+		printf("%f\t%f\t%f\t%f\n", deltaF[0], deltaF[1], deltaF[2], deltaF[3]);
+		
+		angleZ += 0.03 * CV_PI_f;
+		//sensor = Quaternion(axisX, angleZ);
+        sensor = Quaternion(deltaF[0], deltaF[1], deltaF[2], deltaF[3]);
+        model.Update(sensor);
+        model.Draw(image, cfg);
+		imshow("display", image);
+		key = waitKey(500);
+        delete deltaF;
+	} 
+    while (key == -1);
+}
+
 
 int main() {	
 	
@@ -342,9 +383,26 @@ int main() {
 		cout << "error setting serial port state\n";
 	}
 	
-    //testRotationMat();
-    //testPullTransform();
-    //testFittingSteps();
-    testHumanModelAbsQuat();
+    char ch;
+    cout << "1 - Run Human Model Tracking;" << endl;
+    cout << "2 - Run Table Model Tracking;" << endl;
+    cout << "Your choice? ";
+    cin >> ch;
+
+    switch (ch)
+    {
+    case '1':
+        //testRotationMat();
+        //testPullTransform();
+        //testFittingSteps();
+        testHumanModelAbsQuat();
+        break;
+    case '2':
+        testTableModel();
+        break;
+    default:
+        cout << "Wrong input!" << endl;
+        break;
+    }
     return 0;
 }

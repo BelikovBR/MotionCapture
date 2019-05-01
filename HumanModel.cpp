@@ -691,15 +691,15 @@ Point3f HumanModelAbs::GetGlobalPt(Body* body, Point3f localPt)
 void HumanModelAbs::InitState()
 {
 	// Линия плечей
-	junctionGround->slaveCS.Angles = Point3f(0, 0.1*CV_PI_f, 0.05*CV_PI_f);
+	junctionGround->slaveCS.Angles = Point3f(0, 0.1*CV_PI_f, 0.05f*CV_PI_f);
 
 	// Павая рука
-	junctionA->slaveCS.Angles = Point3f(0, 0.25*CV_PI_f, 0.75*CV_PI_f);
-	junctionB->slaveCS.Angles = Point3f(0, 0.25*CV_PI_f, 0.50*CV_PI_f);
+	junctionA->slaveCS.Angles = Point3f(0.0f, 0.25*CV_PI_f, 0.75f*CV_PI_f);
+	junctionB->slaveCS.Angles = Point3f(0.0f, 0.25*CV_PI_f, 0.50f*CV_PI_f);
 
 	// Левая рука
-	junctionF->slaveCS.Angles = Point3f(0, 0, 0.25*CV_PI_f);
-	junctionE->slaveCS.Angles = Point3f(0, 0, 0.25*CV_PI_f);
+	junctionF->slaveCS.Angles = Point3f(0.0f, 0, 0.25*CV_PI_f);
+	junctionE->slaveCS.Angles = Point3f(0.0f, 0, 0.25*CV_PI_f);
 }
 
 // Метод визуализации состояния всей модели тела на изображении.
@@ -775,3 +775,108 @@ void HumanModelAbsQuat::InitState()
 	junctionE->slaveCS.Angles = Quaternion(axisZ, 0.75*CV_PI_f);
 }
 
+
+// --------------------------- Модель стола с ношками -----------------------
+
+// Метод визуаклизирует отдельный элемент стола для текущих значений углов 
+// поворота модели. 
+void TableModel::DrawBody(Mat& image, const DrawingConfig& cfg, Body* body)
+{
+    Point3f globalTail, globalHead;
+    Point2f projTail, projHead;
+
+    globalTail = m_pose.ApplyRotationQuat(body->localTail);
+    globalHead = m_pose.ApplyRotationQuat(body->localHead);
+    projTail = cfg.Project(globalTail);
+    projHead = cfg.Project(globalHead);
+    line(image, projTail, projHead, cfg.bodyColor, cfg.bodyWidth);
+}
+
+
+// Метод инициализирует модель стола, вычисляя координаты всех вершин
+// по заданным размерам стола. 
+void TableModel::Init(float length, float width, float height)
+{
+    m_length = length;
+    m_width = width;
+    m_height = height;
+
+    m_nbodies = 9;
+    Body* body = m_bodies;
+
+    // Крышка стола
+    body->ID = 0;
+    sprintf(body->Name, "CapWest");
+    body->localTail = Point3f(-0.5f*m_length, 0.5f*m_width, 0.0f);
+    body->localHead = Point3f(0.5f*m_length, 0.5f*m_width, 0.0f);
+
+    ++body;
+    body->ID = 1;
+    sprintf(body->Name, "CapEast");
+    body->localTail = Point3f(-0.5f*m_length, -0.5f*m_width, 0.0f);
+    body->localHead = Point3f(0.5f*m_length, -0.5f*m_width, 0.0f);
+
+    ++body;
+    body->ID = 2;
+    sprintf(body->Name, "CapSouth");
+    body->localTail = Point3f(-0.5f*m_length, -0.5f*m_width, 0.0f);
+    body->localHead = Point3f(-0.5f*m_length, 0.5f*m_width, 0.0f);
+
+    ++body;
+    body->ID = 3;
+    sprintf(body->Name, "CapNorth");
+    body->localTail = Point3f(0.5f*m_length, -0.5f*m_width, 0.0f);
+    body->localHead = Point3f(0.5f*m_length, 0.5f*m_width, 0.0f);
+
+    // Ножки стола
+    ++body;
+    body->ID = 4;
+    sprintf(body->Name, "LegSouthWest");
+    body->localTail = Point3f(-0.5f*m_length, 0.5f*m_width, -m_height);
+    body->localHead = Point3f(-0.5f*m_length, 0.5f*m_width, 0.0f);
+    
+    ++body;
+    body->ID = 5;
+    sprintf(body->Name, "LegSouthEast");
+    body->localTail = Point3f(-0.5f*m_length, -0.5f*m_width, -m_height);
+    body->localHead = Point3f(-0.5f*m_length, -0.5f*m_width, 0.0f);
+
+    ++body;
+    body->ID = 6;
+    sprintf(body->Name, "LegNorthWest");
+    body->localTail = Point3f(0.5f*m_length, 0.5f*m_width, -m_height);
+    body->localHead = Point3f(0.5f*m_length, 0.5f*m_width, 0.0f);
+
+    ++body;
+    body->ID = 7;
+    sprintf(body->Name, "LegNorthEast");
+    body->localTail = Point3f(0.5f*m_length, -0.5f*m_width, -m_height);
+    body->localHead = Point3f(0.5f*m_length, -0.5f*m_width, 0.0f);
+
+    // Дополнительная направляющая на север
+    ++body;
+    body->ID = 8;
+    sprintf(body->Name, "ArrowNorth");
+    body->localTail = Point3f(0.5f*m_length, 0.0f, 0.0f);
+    body->localHead = Point3f(0.75f*m_length, 0.0f, 0.0f);
+
+    // Инициализируем положение в пространстве
+    m_pose.InitIdentity();
+}
+
+
+// Метод обновляет углы поворота модели стола в пространстве
+void TableModel::Update(Quaternion& quat)
+{
+    m_pose.Angles = quat;
+}
+
+
+// Метод отрисовывает все элементы стола по текущим значениям углов
+// поворота
+void TableModel::Draw(Mat& image, const DrawingConfig& cfg)
+{
+    image = cfg.backgndColor;
+    for (int i = 0; i < m_nbodies; i++)
+        DrawBody(image, cfg, m_bodies + i);
+}

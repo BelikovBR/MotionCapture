@@ -293,3 +293,23 @@ protected:
 	virtual void InitState();
 
 };
+
+
+// Класс для рисования вращающегося стола при калибровке датчика
+class TableModel
+{
+private:
+    float m_length;         // размеры стола
+    float m_width;
+    float m_height;
+    int m_nbodies;          // количество элементов стола
+    Body m_bodies[BODIES_MAX_COUNT];  // элементы в виде стержней      
+    CoordTransform m_pose;  // положение стола в пространстве
+
+    void DrawBody(Mat& image, const DrawingConfig& cfg, Body* body);
+
+public:
+    void Init(float length, float width, float height);
+    void Update(Quaternion& quat);
+    void Draw(Mat& image, const DrawingConfig& cfg);
+};
