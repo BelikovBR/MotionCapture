@@ -311,6 +311,7 @@ void testHumanModelAbsQuat()
 		model.Draw(image, cfg);
 		imshow("display", image);
 		key = waitKey(500);
+        delete deltaF;
 	} while (key == -1 && istep < 100);
 }
 
