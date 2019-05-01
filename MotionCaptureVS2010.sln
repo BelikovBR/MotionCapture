@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.539
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MotionCapture", "MotionCaptureVS2010.vcxproj", "{5C9F9F65-5742-43E2-AEBE-32C8A4565A31}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5C9F9F65-5742-43E2-AEBE-32C8A4565A31}.Debug|x86.ActiveCfg = Debug|Win32
+		{5C9F9F65-5742-43E2-AEBE-32C8A4565A31}.Debug|x86.Build.0 = Debug|Win32
+		{5C9F9F65-5742-43E2-AEBE-32C8A4565A31}.Release|x86.ActiveCfg = Release|Win32
+		{5C9F9F65-5742-43E2-AEBE-32C8A4565A31}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5DC80B00-6304-46B4-AD8D-944A9E3CE7F5}
+	EndGlobalSection
+EndGlobal
