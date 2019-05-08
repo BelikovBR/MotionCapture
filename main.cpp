@@ -6,9 +6,9 @@
 using namespace std;
 
 float deltaCV = 0;
+float* yprF = new float[4];
 
 HANDLE hSerial;
-float* readF();
 
  /*
 void testRotationMat(Point3f angles, Point3f ptSrc)
@@ -216,42 +216,70 @@ void testFittingSteps()
 // Формат: n[i] ..... \n, где i - номер датчика в костюме
 //ypr[0] - номер датчика
 //ypr[1],ypr[2],ypr[3] - углы x,y,z
-float* readF() {
+int readF() {
 	DWORD iSize;
 	char sReceivedChar = 0;
 	char mystring[256];
-	//float deltaX = 0, deltaY = 0 , deltaZ = 0;
-	
-	float* ypr = new float[4];
+	int num = -1;
 	int val = 0;
 	char tmp;
 
 	for (int i = 0; i < 256; i++) {
-
 		ReadFile(hSerial, &sReceivedChar, sizeof(sReceivedChar), &iSize, NULL);  // получаем 1 байт
 		
 		if (sReceivedChar == 'n') {
 			val = 1;
-		//	ReadFile(hSerial, &sReceivedChar, sizeof(sReceivedChar), &iSize, NULL);
-			//j = sReceivedChar;
 		}
 		if (sReceivedChar == '\n')
 			val = 0;
 		 
-		if (val == 1)
-			mystring[i] = sReceivedChar;
+		if (val == 1) {
+				mystring[i] = sReceivedChar;
+		}
 		else {
 			i = 257;
 		}
-	
 	}
+	sscanf(mystring, "%c%i%f%f%f%f", &tmp, &num, &yprF[0], &yprF[1], &yprF[2], &yprF[3]);
 
-	sscanf(mystring,"%c%f%f%f%f", &tmp, &ypr[0], &ypr[1], &ypr[2], &ypr[3]);
-
-	return ypr;
+	return num;
 }
 
 
+struct MouseData
+{
+	Point2f cursorPrevPos;			// положение указателя мыши в момент предыдущего события мыши
+	bool isMouseTracking;			// признак удерживания кнопки мыши в нажатом состоянии
+	Point3f cameraEulerAngles;		// Углы ориентирования камеры в простанстве
+};
+
+
+void MouseCallbackFcn(int event, int x, int y, int flags, void* userdata)
+{
+	MouseData* pdata = (MouseData*) userdata;
+	Point2f cursorCurrPos = Point2f(x, y);
+	Point2f cursorDisplacement;
+
+	switch (event)
+	{
+	case EVENT_LBUTTONDOWN:
+		pdata->cursorPrevPos = cursorCurrPos;
+		pdata->isMouseTracking = true;
+		break;
+	case EVENT_LBUTTONUP:
+		pdata->isMouseTracking = false;
+		break;
+	case EVENT_MOUSEMOVE:
+		if (pdata->isMouseTracking)
+		{
+			cursorDisplacement = cursorCurrPos - pdata->cursorPrevPos;
+			pdata->cameraEulerAngles.x += cursorDisplacement.x * CV_PI / 480;
+			pdata->cameraEulerAngles.y += cursorDisplacement.y * CV_PI / 480;
+			pdata->cursorPrevPos = cursorCurrPos;
+		}
+		break;
+	}
+}
 
 // Тест визуализации для модели, заданной углами ориентации элементов в
 // абсолютной системе координат кватернионов.
@@ -265,6 +293,7 @@ void testHumanModelAbsQuat()
 	CoordTransform rot;
 	rot.Angles = Point3f(0.3f, 0.0f, 0.0f);
 	rot.Translation = Point3f(0, 0, 0);
+	MouseData mouseData;
 
 	// Задаем размеры частей тела и точки крепления маркеров (метры)
 	dims.sizeAF = 0.40f;
@@ -292,26 +321,41 @@ void testHumanModelAbsQuat()
 	model.UpdateState(sensor);
 	model.Draw(image, cfg);
 	imshow("display", image);
-	waitKey(500);
+	waitKey(10);
+
+	// Регистристрируем обработчик событий мыши
+	mouseData.cursorPrevPos = Point2f(0, 0);
+	mouseData.cameraEulerAngles = Point3f(0, 0, 0);
+	mouseData.isMouseTracking = false;
+	setMouseCallback("display", MouseCallbackFcn, (void*)&mouseData);
 
 	// Проводим цикл пошагового совмещения
 	int istep = 0;
 	signed char key = -1;
 	float angleZ = 0;
-	float * deltaF;
+	int NUMB = -1;
 	do
 	{
-		deltaF = readF();
-		printf("%f\t%f\t%f\t%f\n", deltaF[0], deltaF[1], deltaF[2], deltaF[3]);
-		
+		NUMB = readF();
+		printf("%f\t%f\t%f\t%f\n", yprF[0], yprF[1], yprF[2], yprF[3]);
 		angleZ += 0.03 * CV_PI_f;
-		sensor.junctionB = Quaternion(deltaF[0], deltaF[1], deltaF[2], deltaF[3]);
+		//if (NUMB == 0) {
+		sensor.junctionB = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+		//}
+		//if (NUMB == 1) {
+			//sensor.junctionA = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+		//}
+		NUMB = -1;
 		//sensor.junctionB = Quaternion();
+
+		// Обновляем ориентацию камеры в пространстве
+		rot.Angles = mouseData.cameraEulerAngles;
+		cfg.worldBasisX = rot.Apply(Point3f(1.0f, 0.0f, 0.0f));
+		cfg.worldBasisY = rot.Apply(Point3f(0.0f, 1.0f, 0.0f));
 		model.UpdateState(sensor);
 		model.Draw(image, cfg);
 		imshow("display", image);
-		key = waitKey(500);
-        delete deltaF;
+		key = waitKey(10);
 	} while (key == -1 && istep < 100);
 }
 
@@ -339,20 +383,21 @@ void testTableModel()
 	Point3f axisZ(0.0f, 0.0f, 1.0f);
     signed char key = -1;
 	float angleZ = 0;
-	float * deltaF;
+	//float * deltaF;
+	int NUMB = -1;
 	do
 	{
-		deltaF = readF();
-		printf("%f\t%f\t%f\t%f\n", deltaF[0], deltaF[1], deltaF[2], deltaF[3]);
+		NUMB = readF();
+		printf("%f\t%f\t%f\t%f\n", yprF[0], yprF[1], yprF[2], yprF[3]);
 		
 		angleZ += 0.03 * CV_PI_f;
 		//sensor = Quaternion(axisX, angleZ);
-        sensor = Quaternion(deltaF[0], deltaF[1], deltaF[2], deltaF[3]);
-        model.Update(sensor);
+		sensor = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+		model.Update(sensor);
         model.Draw(image, cfg);
 		imshow("display", image);
-		key = waitKey(500);
-        delete deltaF;
+		key = waitKey(10);
+       // delete deltaF;
 	} 
     while (key == -1);
 }
