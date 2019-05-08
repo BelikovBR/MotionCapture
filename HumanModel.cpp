@@ -688,7 +688,7 @@ Point3f HumanModelAbs::GetGlobalPt(Body* body, Point3f localPt)
 }
 
 // Инициализация начального состояния модели
-void HumanModelAbs::InitState()
+void HumanModelAbs::InitState(const Sensor& initialSensor, const Sensor& initialModel)
 {
 	// Линия плечей
 	junctionGround->slaveCS.Angles = Point3f(0, 0.1*CV_PI_f, 0.05f*CV_PI_f);
@@ -715,18 +715,25 @@ void HumanModelAbs::Draw(Mat& image, const DrawingConfig& cfg)
 
 void HumanModelAbs::UpdateState(const Sensor& sensor)
 {
-	//InitState();
+	Quaternion buffer;
 
 	// Линия плечей
-	junctionGround->slaveCS.Angles = sensor.junctionGround;
+	buffer = sensor.junctionGround;
+	junctionGround->slaveCS.Angles = QuaternionMultiply(&initialOffsets.junctionGround, &buffer);
 
 	// Левая рука
-	junctionA->slaveCS.Angles = sensor.junctionA;
-	junctionB->slaveCS.Angles = sensor.junctionB;
+	buffer = sensor.junctionA;
+	junctionA->slaveCS.Angles = QuaternionMultiply(&initialOffsets.junctionA, &buffer);
+
+	buffer = sensor.junctionB;
+	junctionB->slaveCS.Angles = QuaternionMultiply(&initialOffsets.junctionB, &buffer); 
 
 	// Правая рука
-	junctionF->slaveCS.Angles = sensor.junctionF;
-	junctionE->slaveCS.Angles = sensor.junctionE;
+	buffer = sensor.junctionF;
+	junctionF->slaveCS.Angles = QuaternionMultiply(&initialOffsets.junctionF, &buffer);
+
+	buffer = sensor.junctionE;
+	junctionE->slaveCS.Angles = QuaternionMultiply(&initialOffsets.junctionE, &buffer);;
 }
 
 
@@ -757,22 +764,43 @@ Point3f HumanModelAbsQuat::GetGlobalPt(Body* body, Point3f localPt)
 }
 
 // Инициализация начального состояния модели
-void HumanModelAbsQuat::InitState()
+void HumanModelAbsQuat::InitState(const Sensor& initialSensor, const Sensor& initialModel)
 {
 	Point3f axisX(1.0f, 0.0f, 0.0f);
 	Point3f axisY(0.0f, 1.0f, 0.0f);
 	Point3f axisZ(0.0f, 0.0f, 1.0f);
+	Quaternion bufferSensor;
+	Quaternion bufferModel;
 
 	// Линия плечей
-	junctionGround->slaveCS.Angles = Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
+	bufferSensor = initialSensor.junctionGround;
+	QuaternionInvert(&bufferSensor);
+	bufferModel = initialModel.junctionGround;
+	initialOffsets.junctionGround = QuaternionMultiply(&bufferSensor, &bufferModel);
 
 	// Павая рука
-	junctionA->slaveCS.Angles = Quaternion(axisZ, 0.75*CV_PI_f);
-	junctionB->slaveCS.Angles = Quaternion(axisZ, 0.25*CV_PI_f);
+	bufferSensor = initialSensor.junctionA;
+	QuaternionInvert(&bufferSensor);
+	bufferModel = initialModel.junctionA;
+	initialOffsets.junctionA = QuaternionMultiply(&bufferSensor, &bufferModel);
+
+	bufferSensor = initialSensor.junctionB;
+	QuaternionInvert(&bufferSensor);
+	bufferModel = initialModel.junctionB;
+	initialOffsets.junctionB = QuaternionMultiply(&bufferModel,&bufferSensor);
+	bufferSensor = initialSensor.junctionB;
+	Quaternion probe = QuaternionMultiply(&initialOffsets.junctionB, &bufferSensor);
 
 	// Левая рука
-	junctionF->slaveCS.Angles = Quaternion(axisZ, 0.25*CV_PI_f);
-	junctionE->slaveCS.Angles = Quaternion(axisZ, 0.75*CV_PI_f);
+	bufferSensor = initialSensor.junctionF;
+	QuaternionInvert(&bufferSensor);
+	bufferModel = initialModel.junctionF;
+	initialOffsets.junctionF = QuaternionMultiply(&bufferSensor, &bufferModel);
+
+	bufferSensor = initialSensor.junctionE;
+	QuaternionInvert(&bufferSensor);
+	bufferModel = initialModel.junctionE;
+	initialOffsets.junctionE = QuaternionMultiply(&bufferSensor, &bufferModel);
 }
 
 

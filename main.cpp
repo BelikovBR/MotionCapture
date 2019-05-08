@@ -312,16 +312,18 @@ void testHumanModelAbsQuat()
 
 	// Инициализируем состояние модели
 	Sensor sensor;
+	Sensor initialModel;
 	Point3f axisZ(0.0f, 0.0f, 1.0f);
-	sensor.junctionGround = Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
-	sensor.junctionA = Quaternion(axisZ, 0.75*CV_PI_f);
-	sensor.junctionB = Quaternion(axisZ, 0.25*CV_PI_f);
-	sensor.junctionF = Quaternion(axisZ, 0.25*CV_PI_f);
-	sensor.junctionE = Quaternion(axisZ, 0.75*CV_PI_f);
+	initialModel.junctionGround = Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
+	initialModel.junctionA = Quaternion(axisZ, 0.75*CV_PI_f);
+	initialModel.junctionB = Quaternion(axisZ, 0.25*CV_PI_f);
+	initialModel.junctionF = Quaternion(axisZ, 0.25*CV_PI_f);
+	initialModel.junctionE = Quaternion(axisZ, 0.75*CV_PI_f);
+	model.InitState(initialModel, initialModel);
 	model.UpdateState(sensor);
 	model.Draw(image, cfg);
 	imshow("display", image);
-	waitKey(10);
+	waitKey(5);
 
 	// Регистристрируем обработчик событий мыши
 	mouseData.cursorPrevPos = Point2f(0, 0);
@@ -356,7 +358,14 @@ void testHumanModelAbsQuat()
 		model.Draw(image, cfg);
 		imshow("display", image);
 		key = waitKey(10);
-	} while (key == -1 && istep < 100);
+		switch (key)
+		{
+		case '1':
+			// Инициализируем состояние модели для текущих показаний датчиков
+			model.InitState(sensor, initialModel);
+			break;
+		}
+	} while (key != 27 && istep < 100);
 }
 
 
@@ -449,5 +458,6 @@ int main() {
         cout << "Wrong input!" << endl;
         break;
     }
+	delete yprF;
     return 0;
 }

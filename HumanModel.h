@@ -275,10 +275,13 @@ struct Sensor
 class HumanModelAbs : public HumanModel
 {
 protected:
+	Sensor initialOffsets;		
+		// Преобразования приведения начальных показаний датчиков в момент 
+		// инициализации к начальному положению модели
 	virtual Point3f GetGlobalPt(Body* body, Point3f localPt);
-	virtual void InitState();
 
 public:
+	virtual void InitState(const Sensor& initialSensor, const Sensor& initialModel);
 	void Draw(Mat& image, const DrawingConfig& cfg);
 	void UpdateState(const Sensor& sensor);
 };
@@ -290,7 +293,9 @@ class HumanModelAbsQuat : public HumanModelAbs
 {
 protected:
 	virtual Point3f GetGlobalPt(Body* body, Point3f localPt);
-	virtual void InitState();
+
+public:
+	virtual void InitState(const Sensor& initialSensor, const Sensor& initialModel);
 
 };
 
