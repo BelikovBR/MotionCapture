@@ -319,7 +319,7 @@ void testHumanModelAbsQuat()
 	initialModel.junctionB = Quaternion(axisZ, 0.25*CV_PI_f);
 	initialModel.junctionF = Quaternion(axisZ, 0.25*CV_PI_f);
 	initialModel.junctionE = Quaternion(axisZ, 0.75*CV_PI_f);
-	model.InitState(initialModel, initialModel);
+	//model.InitState(initialModel, initialModel);
 	model.UpdateState(sensor);
 	model.Draw(image, cfg);
 	imshow("display", image);
@@ -341,13 +341,15 @@ void testHumanModelAbsQuat()
 		NUMB = readF();
 		printf("%f\t%f\t%f\t%f\n", yprF[0], yprF[1], yprF[2], yprF[3]);
 		angleZ += 0.03 * CV_PI_f;
-		//if (NUMB == 0) {
-		sensor.junctionB = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
-		//}
-		//if (NUMB == 1) {
-			//sensor.junctionA = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
-		//}
-		NUMB = -1;
+		if (NUMB == 0) {
+			sensor.junctionB = sensor.junctionA;// Quaternion(1.0f, 0.0f, 0.0f, 0.0f); ;// Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+		}
+		if (NUMB == 1) {
+			sensor.junctionA = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+		}
+		if (NUMB == -1)
+			continue;
+
 		//sensor.junctionB = Quaternion();
 
 		// ќбновл€ем ориентацию камеры в пространстве

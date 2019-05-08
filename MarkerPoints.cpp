@@ -145,7 +145,9 @@ void MarkerPoints::Draw(Mat& image, const DrawingConfig& cfg)
 // Метод проецирует точку 3D -> 2D
 Point2f DrawingConfig::Project(Point3f worldPt) const
 {
-    Point3f worldPtRadius = worldPt - worldOrigin;
+	Point3f worldPtMirrored = worldPt;
+	worldPtMirrored.y = -worldPtMirrored.y;
+    Point3f worldPtRadius = worldPtMirrored - worldOrigin;
     Point2f imagePtRadius;
     imagePtRadius.x = worldPtRadius.dot(worldBasisX) * imageScale;
     imagePtRadius.y = worldPtRadius.dot(worldBasisY) * imageScale;

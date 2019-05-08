@@ -776,13 +776,13 @@ void HumanModelAbsQuat::InitState(const Sensor& initialSensor, const Sensor& ini
 	bufferSensor = initialSensor.junctionGround;
 	QuaternionInvert(&bufferSensor);
 	bufferModel = initialModel.junctionGround;
-	initialOffsets.junctionGround = QuaternionMultiply(&bufferSensor, &bufferModel);
+	initialOffsets.junctionGround = QuaternionMultiply(&bufferModel, &bufferSensor);
 
 	// Павая рука
 	bufferSensor = initialSensor.junctionA;
 	QuaternionInvert(&bufferSensor);
 	bufferModel = initialModel.junctionA;
-	initialOffsets.junctionA = QuaternionMultiply(&bufferSensor, &bufferModel);
+	initialOffsets.junctionA = QuaternionMultiply(&bufferModel, &bufferSensor);
 
 	bufferSensor = initialSensor.junctionB;
 	QuaternionInvert(&bufferSensor);
@@ -795,12 +795,12 @@ void HumanModelAbsQuat::InitState(const Sensor& initialSensor, const Sensor& ini
 	bufferSensor = initialSensor.junctionF;
 	QuaternionInvert(&bufferSensor);
 	bufferModel = initialModel.junctionF;
-	initialOffsets.junctionF = QuaternionMultiply(&bufferSensor, &bufferModel);
+	initialOffsets.junctionF = QuaternionMultiply(&bufferModel, &bufferSensor);
 
 	bufferSensor = initialSensor.junctionE;
 	QuaternionInvert(&bufferSensor);
 	bufferModel = initialModel.junctionE;
-	initialOffsets.junctionE = QuaternionMultiply(&bufferSensor, &bufferModel);
+	initialOffsets.junctionE = QuaternionMultiply(&bufferModel, &bufferSensor);
 }
 
 
