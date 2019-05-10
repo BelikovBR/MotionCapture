@@ -273,8 +273,8 @@ void MouseCallbackFcn(int event, int x, int y, int flags, void* userdata)
 		if (pdata->isMouseTracking)
 		{
 			cursorDisplacement = cursorCurrPos - pdata->cursorPrevPos;
-			pdata->cameraEulerAngles.x += cursorDisplacement.x * CV_PI / 480;
-			pdata->cameraEulerAngles.y += cursorDisplacement.y * CV_PI / 480;
+			pdata->cameraEulerAngles.x += cursorDisplacement.y * CV_PI / 480;
+			pdata->cameraEulerAngles.y += cursorDisplacement.x * CV_PI / 480;
 			pdata->cursorPrevPos = cursorCurrPos;
 		}
 		break;
@@ -315,8 +315,8 @@ void testHumanModelAbsQuat()
 	Sensor initialModel;
 	Point3f axisZ(0.0f, 0.0f, 1.0f);
 	initialModel.junctionGround = Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
-	initialModel.junctionA = Quaternion(axisZ, 0.75*CV_PI_f);
-	initialModel.junctionB = Quaternion(axisZ, 0.25*CV_PI_f);
+	initialModel.junctionA = Quaternion(axisZ, 1.00*CV_PI_f);
+	initialModel.junctionB = Quaternion(axisZ, 1.00*CV_PI_f);
 	initialModel.junctionF = Quaternion(axisZ, 0.25*CV_PI_f);
 	initialModel.junctionE = Quaternion(axisZ, 0.75*CV_PI_f);
 	//model.InitState(initialModel, initialModel);
@@ -342,8 +342,7 @@ void testHumanModelAbsQuat()
 		printf("%f\t%f\t%f\t%f\n", yprF[0], yprF[1], yprF[2], yprF[3]);
 		angleZ += 0.03 * CV_PI_f;
 		if (NUMB == 0) {
-			sensor.junctionA = /*sensor.junctionA;// Quaternion(1.0f, 1
-0.0f, 0.0f, 0.0f); ;*/ Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+			sensor.junctionA =  Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
 		}
 		if (NUMB == 1) {
 			sensor.junctionB = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
