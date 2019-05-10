@@ -323,7 +323,7 @@ void testHumanModelAbsQuat()
 	model.UpdateState(sensor);
 	model.Draw(image, cfg);
 	imshow("display", image);
-	waitKey(5);
+	waitKey(500);
 
 	// Регистристрируем обработчик событий мыши
 	mouseData.cursorPrevPos = Point2f(0, 0);
@@ -342,10 +342,11 @@ void testHumanModelAbsQuat()
 		printf("%f\t%f\t%f\t%f\n", yprF[0], yprF[1], yprF[2], yprF[3]);
 		angleZ += 0.03 * CV_PI_f;
 		if (NUMB == 0) {
-			sensor.junctionB = sensor.junctionA;// Quaternion(1.0f, 0.0f, 0.0f, 0.0f); ;// Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+			sensor.junctionA = /*sensor.junctionA;// Quaternion(1.0f, 1
+0.0f, 0.0f, 0.0f); ;*/ Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
 		}
 		if (NUMB == 1) {
-			sensor.junctionA = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+			sensor.junctionB = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
 		}
 		if (NUMB == -1)
 			continue;
