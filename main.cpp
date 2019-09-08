@@ -287,6 +287,7 @@ void testHumanModelAbsQuat()
 {
 	HumanDimensions dims;
 	HumanModelAbsQuat model;
+	HumanStateEuler state;
 	float scale;
 	Mat image;
 	DrawingConfig cfg;
@@ -358,6 +359,9 @@ void testHumanModelAbsQuat()
 		cfg.worldBasisY = rot.Apply(Point3f(0.0f, 1.0f, 0.0f));
 		model.UpdateState(sensor);
 		model.Draw(image, cfg);
+		model.GetStateEuler(state);
+		printf("ABalpha = %12.4f, ABbetta = %12.4f, BCalpha = %12.4f, BCbetta = %12.4\n", 
+			state.AB.alpha, state.AB.betta, state.BC.alpha, state.BC.betta);
 		imshow("display", image);
 		key = waitKey(10);
 		switch (key)

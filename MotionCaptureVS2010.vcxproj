@@ -43,7 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)bin\Debug\</OutDir>
-    <LibraryPath>C:\opencv-3.2.0\build\lib\Debug;D:\Boris Data\OpenCV unknown\lib;C:\opencv-3.2\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\opencv-3.2.0\build_vs2010\lib\Debug;C:\opencv-3.2.0\build\lib\Debug;D:\Boris Data\OpenCV unknown\lib;C:\opencv-3.2\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -57,7 +57,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>c:\opencv-3.2.0\build\_CPack_Packages\win32\NSIS\OpenCV-unknown-AMD64\dev\include\;D:\Boris Data\OpenCV unknown\include;D:\Boris Data\MotionCapture\lib\qserialport-0.1.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\opencv-3.2.0\build_vs2010\_CPack_Packages\win32\NSIS\OpenCV-unknown-AMD64\dev\include;c:\opencv-3.2.0\build\_CPack_Packages\win32\NSIS\OpenCV-unknown-AMD64\dev\include\;D:\Boris Data\OpenCV unknown\include;D:\Boris Data\MotionCapture\lib\qserialport-0.1.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

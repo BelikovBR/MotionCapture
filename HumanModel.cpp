@@ -737,6 +737,29 @@ void HumanModelAbs::UpdateState(const Sensor& sensor)
 }
 
 
+// ћетод возвращает значени€ углов Ёйлера дл€ заданной части модели
+void HumanModelAbs::GetEulerAngles(Body* body, EulerAngles* euler)
+{
+	// –асчет координат вершин участков руки
+	Point3f head = GetGlobalPt(body, body->localHead);
+	Point3f tail = GetGlobalPt(body, body->localTail);
+	double length = norm(tail - head);
+	euler->alpha = (180 / CV_PI) * std::atan2(
+		(tail.y - head.y)/length, 
+		(tail.x - head.x)/length);
+	euler->betta = (180 / CV_PI) * std::asin((tail.z - head.z)/length);
+	euler->gamma = 0;
+}
+
+
+// ћетод возвращает значени€ углов Ёйлера дл€ используемых элементов модели 
+void HumanModelAbs::GetStateEuler(HumanStateEuler& state)
+{
+	GetEulerAngles(bodyAB, &state.AB);
+	GetEulerAngles(bodyBC, &state.BC);
+}
+
+
 // --------------------------- HumanModelAbsQuat ----------------------------
 
 // ѕересчет локальных координат точки относительно части тела в глобальные 
