@@ -360,7 +360,7 @@ void testHumanModelAbsQuat()
 		model.UpdateState(sensor);
 		model.Draw(image, cfg);
 		model.GetStateEuler(state);
-		printf("ABalpha = %12.4f, ABbetta = %12.4f, BCalpha = %12.4f, BCbetta = %12.4\n", 
+		printf("ABalpha = %7.2f, ABbetta = %7.2f, BCalpha = %7.2f, BCbetta = %7.2f\n", 
 			state.AB.alpha, state.AB.betta, state.BC.alpha, state.BC.betta);
 		imshow("display", image);
 		key = waitKey(10);
