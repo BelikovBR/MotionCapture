@@ -270,6 +270,22 @@ struct Sensor
 };
 
 
+// —труктура представл€ет углы Ёйлера ориентации модели
+struct EulerAngles
+{
+	float alpha; // относительно оси X
+	float betta; // относительно плоскости XoY
+	float gamma; // относительно собственной оси
+};
+
+
+struct HumanStateEuler
+{
+	EulerAngles AB;	 // углы левого плеча 
+	EulerAngles BC;  // углы левого предплечь€
+};
+
+
 // HumanModelAbs:  ласс представл€ет модель человека, управл€емую
 // углами ориентации элементов в глобальной — .
 class HumanModelAbs : public HumanModel
@@ -279,11 +295,13 @@ protected:
 		// ѕреобразовани€ приведени€ начальных показаний датчиков в момент 
 		// инициализации к начальному положению модели
 	virtual Point3f GetGlobalPt(Body* body, Point3f localPt);
+	void GetEulerAngles(Body* body, EulerAngles* euler);
 
 public:
 	virtual void InitState(const Sensor& initialSensor, const Sensor& initialModel);
 	void Draw(Mat& image, const DrawingConfig& cfg);
 	void UpdateState(const Sensor& sensor);
+	void GetStateEuler(HumanStateEuler& euler);
 };
 
 
