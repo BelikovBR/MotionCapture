@@ -10,17 +10,17 @@ float* yprF = new float[4];
 
 HANDLE hSerial;
 
- /*
+/*
 void testRotationMat(Point3f angles, Point3f ptSrc)
 {
-    CoordTransform CS;
-    CS.Translation = Point3f(0,0,0);
-    CS.Angles = angles;
-    Point3f ptDst;
+	CoordTransform CS;
+	CS.Translation = Point3f(0,0,0);
+	CS.Angles = angles;
+	Point3f ptDst;
 
-    ptDst = CS.Apply(ptSrc);
+	ptDst = CS.Apply(ptSrc);
 
-    cout << "ptSrc = " << ptSrc << endl;
+	cout << "ptSrc = " << ptSrc << endl;
 	cout << "Rotation Mat = " << endl << CS.GetRotationMat() << endl;
 	cout << "ptDst = " << ptDst << endl << endl;
 }
@@ -28,27 +28,27 @@ void testRotationMat(Point3f angles, Point3f ptSrc)
 void testRotationMat()
 {
 	cout << "Rotate around Ox:" <<  endl;
-    testRotationMat(Point3f(0.5f*CV_PI_f, 0, 0), Point3f(10, 2, 1));
+	testRotationMat(Point3f(0.5f*CV_PI_f, 0, 0), Point3f(10, 2, 1));
 	cout << "Rotate around Oy:" <<	endl;
-    testRotationMat(Point3f(0, 0.25f*CV_PI_f, 0), Point3f(1, 0, 0));
+	testRotationMat(Point3f(0, 0.25f*CV_PI_f, 0), Point3f(1, 0, 0));
 	cout << "Rotate around Oz:" <<  endl;
-    testRotationMat(Point3f(0, 0, 0.25f*CV_PI_f), Point3f(1, 0, 0));
+	testRotationMat(Point3f(0, 0, 0.25f*CV_PI_f), Point3f(1, 0, 0));
 	cout << "Rotate around Oy and Oz:" <<  endl;
-    testRotationMat(Point3f(0, 0.25f*CV_PI_f, 0.25f*CV_PI_f), Point3f(1, 0, 0));
+	testRotationMat(Point3f(0, 0.25f*CV_PI_f, 0.25f*CV_PI_f), Point3f(1, 0, 0));
 	cin.get();
 }
 
 void testPullTransform()
 {
-    Point3f ptSrc(1, 0, 0);
-    Point3f ptDst(1, 1, 1);
-    CoordTransform CS;
-    
+	Point3f ptSrc(1, 0, 0);
+	Point3f ptDst(1, 1, 1);
+	CoordTransform CS;
+
 	cout << "Angles Before Pull = " << endl << CS.Angles << endl;
 	cout << "ptSrc = " << ptSrc << endl;
 	cout << "ptDst = " << ptDst << endl << endl;
 
-    CS.Pull(ptSrc, ptDst, CV_PI_f);
+	CS.Pull(ptSrc, ptDst, CV_PI_f);
 
 	cout << "Angles After Pull = " << endl << CS.Angles << endl;
 	cout << "Transformed ptSrc = " << endl << CS.Apply(ptSrc) << endl;
@@ -57,70 +57,70 @@ void testPullTransform()
 
 void testFittingSteps()
 {
-    HumanDimensions dims;
-    HumanModel model;
-    MarkerPoints markerPts;
-    float scale;
-    Mat image;
-    DrawingConfig cfg;
-    VideoWriter writer;
-    CoordTransform rot;
-    rot.Angles = Point3f(0.0f, 0.3f, 0.0f);
-    rot.Translation = Point3f(0, 0, 0);
+	HumanDimensions dims;
+	HumanModel model;
+	MarkerPoints markerPts;
+	float scale;
+	Mat image;
+	DrawingConfig cfg;
+	VideoWriter writer;
+	CoordTransform rot;
+	rot.Angles = Point3f(0.0f, 0.3f, 0.0f);
+	rot.Translation = Point3f(0, 0, 0);
 
-    // Загружаем координаты положений маркеров в пространстве
-    if (!markerPts.LoadCSV("markers.ply"))
-    {
-        printf("Unable to load marker points!");
-        return;
-    }
+	// Загружаем координаты положений маркеров в пространстве
+	if (!markerPts.LoadCSV("markers.ply"))
+	{
+		printf("Unable to load marker points!");
+		return;
+	}
 
-    // Задаем размеры частей тела и точки крепления маркеров (метры)
-    dims.sizeAF = 0.40f;
-    dims.sizeAB = 0.27f;
-    dims.sizeBC = 0.27f;
-    dims.markerAAF = 0.10f * dims.sizeAF; // от маркера AAF до сустава A
-    dims.markerABB = 0.36f * dims.sizeAB; // от маркера ABB до сустава B
-    dims.markerBCC = 0.36f * dims.sizeBC; // от маркера BCC до вершины C
-    model.Build(dims);
+	// Задаем размеры частей тела и точки крепления маркеров (метры)
+	dims.sizeAF = 0.40f;
+	dims.sizeAB = 0.27f;
+	dims.sizeBC = 0.27f;
+	dims.markerAAF = 0.10f * dims.sizeAF; // от маркера AAF до сустава A
+	dims.markerABB = 0.36f * dims.sizeAB; // от маркера ABB до сустава B
+	dims.markerBCC = 0.36f * dims.sizeBC; // от маркера BCC до вершины C
+	model.Build(dims);
 
-    // Масштабируем координаты маркеров под размеры модели
-    scale = model.EvaluateScale(markerPts);
-    markerPts.ScaleUp(scale);
+	// Масштабируем координаты маркеров под размеры модели
+	scale = model.EvaluateScale(markerPts);
+	markerPts.ScaleUp(scale);
 
-    // Инициализируем контекст визуализации
-    image.create(480, 640, CV_8UC3);
-    cfg.worldOrigin  = 0.5 * markerPts.AAF();
-    cfg.worldOrigin += 0.5 * markerPts.AFF();
-    cfg.imageOrigin = Point2f(0.5f*image.cols, 0.5f*image.rows);
-    cfg.imageScale = 300.0f;
-    writer.open("output.avi", CV_FOURCC('X','V','I','D'), 2.0, 
-        Size(image.cols, image.rows), true);
-    if (!writer.isOpened())
-    {
-        printf("Unable to open outpuit video file for writing!\n");
-    }
+	// Инициализируем контекст визуализации
+	image.create(480, 640, CV_8UC3);
+	cfg.worldOrigin  = 0.5 * markerPts.AAF();
+	cfg.worldOrigin += 0.5 * markerPts.AFF();
+	cfg.imageOrigin = Point2f(0.5f*image.cols, 0.5f*image.rows);
+	cfg.imageScale = 300.0f;
+	writer.open("output.avi", CV_FOURCC('X','V','I','D'), 2.0,
+		Size(image.cols, image.rows), true);
+	if (!writer.isOpened())
+	{
+		printf("Unable to open outpuit video file for writing!\n");
+	}
 
-    // Инициализируем процесс совмещения модели с маркерами
-    model.FittingStepFirst(markerPts);
-    model.Draw(image, cfg, markerPts);
-    imshow("display", image);
-    writer.write(image);
-    waitKey(500);
+	// Инициализируем процесс совмещения модели с маркерами
+	model.FittingStepFirst(markerPts);
+	model.Draw(image, cfg, markerPts);
+	imshow("display", image);
+	writer.write(image);
+	waitKey(500);
 
-    // Проводим цикл пошагового совмещения
-    int istep = 0;
-    bool finish;
-    do
-    {
-        finish = model.FittingStepNext(markerPts, 0.1f);
-        cfg.worldBasisX = rot.Apply(cfg.worldBasisX);
-        model.Draw(image, cfg, markerPts);
-        imshow("display", image);
-        writer.write(image);
-        waitKey(500);
-    }
-    while (!finish && istep < 100);
+	// Проводим цикл пошагового совмещения
+	int istep = 0;
+	bool finish;
+	do
+	{
+		finish = model.FittingStepNext(markerPts, 0.1f);
+		cfg.worldBasisX = rot.Apply(cfg.worldBasisX);
+		model.Draw(image, cfg, markerPts);
+		imshow("display", image);
+		writer.write(image);
+		waitKey(500);
+	}
+	while (!finish && istep < 100);
 }
 */
 
@@ -226,15 +226,15 @@ int readF() {
 
 	for (int i = 0; i < 256; i++) {
 		ReadFile(hSerial, &sReceivedChar, sizeof(sReceivedChar), &iSize, NULL);  // получаем 1 байт
-		
+
 		if (sReceivedChar == 'n') {
 			val = 1;
 		}
 		if (sReceivedChar == '\n')
 			val = 0;
-		 
+
 		if (val == 1) {
-				mystring[i] = sReceivedChar;
+			mystring[i] = sReceivedChar;
 		}
 		else {
 			i = 257;
@@ -256,7 +256,7 @@ struct MouseData
 
 void MouseCallbackFcn(int event, int x, int y, int flags, void* userdata)
 {
-	MouseData* pdata = (MouseData*) userdata;
+	MouseData* pdata = (MouseData*)userdata;
 	Point2f cursorCurrPos = Point2f(x, y);
 	Point2f cursorDisplacement;
 
@@ -337,13 +337,20 @@ void testHumanModelAbsQuat()
 	signed char key = -1;
 	float angleZ = 0;
 	int NUMB = -1;
+	FILE* hfile = fopen("mylog.csv", "w");
+	if (!hfile)
+	{
+		printf("Unable to open input file!\n");
+		return;
+	}
+
 	do
 	{
 		NUMB = readF();
 		printf("%f\t%f\t%f\t%f\n", yprF[0], yprF[1], yprF[2], yprF[3]);
 		angleZ += 0.03 * CV_PI_f;
 		if (NUMB == 0) {
-			sensor.junctionA =  Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
+			sensor.junctionA = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
 		}
 		if (NUMB == 1) {
 			sensor.junctionB = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
@@ -360,7 +367,9 @@ void testHumanModelAbsQuat()
 		model.UpdateState(sensor);
 		model.Draw(image, cfg);
 		model.GetStateEuler(state);
-		printf("ABalpha = %7.2f, ABbetta = %7.2f, BCalpha = %7.2f, BCbetta = %7.2f\n", 
+		printf("ABalpha = %7.2f, ABbetta = %7.2f, BCalpha = %7.2f, BCbetta = %7.2f\n",
+			state.AB.alpha, state.AB.betta, state.BC.alpha, state.BC.betta);
+		fprintf(hfile, "ABalpha =; %7.2f; ABbetta =; %7.2f; BCalpha =; %7.2f; BCbetta =; %7.2f; ",
 			state.AB.alpha, state.AB.betta, state.BC.alpha, state.BC.betta);
 		imshow("display", image);
 		key = waitKey(10);
@@ -370,33 +379,38 @@ void testHumanModelAbsQuat()
 			// Инициализируем состояние модели для текущих показаний датчиков
 			model.InitState(sensor, initialModel);
 			break;
+		default:
+			break;
 		}
+		fprintf(hfile, "Command =; %d;\n", (int)key);
 	} while (key != 27 && istep < 100);
+	fclose(hfile);
+	destroyAllWindows();
 }
 
 
 // Сценарий вращения модели стола в трехмерном пространстве
 void testTableModel()
 {
-    TableModel model;
+	TableModel model;
 	Mat image;
 	DrawingConfig cfg;
 
-    // Задаем размеры стола
-    model.Init(5.0f, 3.0f, 2.0f);
+	// Задаем размеры стола
+	model.Init(5.0f, 3.0f, 2.0f);
 
-    // Инициализируем контекст визуализации
+	// Инициализируем контекст визуализации
 	image.create(480, 640, CV_8UC3);
 	cfg.worldOrigin = Point3f(0.0f, 0.0f, 300.0f);
 	cfg.imageOrigin = Point2f(0.5f*image.cols, 0.5f*image.rows);
 	cfg.imageScale = 50.0f;
 
-    // Визуализируем изменение состояния модели
+	// Визуализируем изменение состояния модели
 	Quaternion sensor;
 	Point3f axisX(1.0f, 0.0f, 0.0f);
 	Point3f axisY(0.0f, 1.0f, 0.0f);
 	Point3f axisZ(0.0f, 0.0f, 1.0f);
-    signed char key = -1;
+	signed char key = -1;
 	float angleZ = 0;
 	//float * deltaF;
 	int NUMB = -1;
@@ -404,24 +418,24 @@ void testTableModel()
 	{
 		NUMB = readF();
 		printf("%f\t%f\t%f\t%f\n", yprF[0], yprF[1], yprF[2], yprF[3]);
-		
+
 		angleZ += 0.03 * CV_PI_f;
 		//sensor = Quaternion(axisX, angleZ);
 		sensor = Quaternion(yprF[0], yprF[1], yprF[2], yprF[3]);
 		model.Update(sensor);
-        model.Draw(image, cfg);
+		model.Draw(image, cfg);
 		imshow("display", image);
 		key = waitKey(10);
-       // delete deltaF;
-	} 
-    while (key == -1);
+		// delete deltaF;
+	} while (key == -1);
 }
 
 
-int main() {	
-	
+int main() {
+
 	LPCTSTR sPortName = L"COM3";
 	hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
 
 	if (hSerial == INVALID_HANDLE_VALUE) {
 		if (GetLastError() == ERROR_FILE_NOT_FOUND) {
@@ -442,28 +456,28 @@ int main() {
 	if (!SetCommState(hSerial, &dcbSerialParams)) {
 		cout << "error setting serial port state\n";
 	}
-	
-    char ch;
-    cout << "1 - Run Human Model Tracking;" << endl;
-    cout << "2 - Run Table Model Tracking;" << endl;
-    cout << "Your choice? ";
-    cin >> ch;
 
-    switch (ch)
-    {
-    case '1':
-        //testRotationMat();
-        //testPullTransform();
-        //testFittingSteps();
-        testHumanModelAbsQuat();
-        break;
-    case '2':
-        testTableModel();
-        break;
-    default:
-        cout << "Wrong input!" << endl;
-        break;
-    }
+	char ch;
+	cout << "1 - Run Human Model Tracking;" << endl;
+	cout << "2 - Run Table Model Tracking;" << endl;
+	cout << "Your choice? ";
+	cin >> ch;
+
+	switch (ch)
+	{
+	case '1':
+		//testRotationMat();
+		//testPullTransform();
+		//testFittingSteps();
+		testHumanModelAbsQuat();
+		break;
+	case '2':
+		testTableModel();
+		break;
+	default:
+		cout << "Wrong input!" << endl;
+		break;
+	}
 	delete yprF;
-    return 0;
+	return 0;
 }
